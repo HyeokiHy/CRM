@@ -1,89 +1,126 @@
 # B2B CRM Pipeline
 
-A Spring Boot CRUD CRM for managing B2B opportunities through:
+Spring Boot 기반의 B2B 영업기회 CRM 예제 프로젝트입니다. 영업기회는 아래 단계 흐름으로 관리합니다.
 
-1. Registration
-2. Go - No Go
-3. Access
-4. Award
-5. Closed
+```text
+Registration -> Access -> Go - No Go -> Award -> Closed
+```
 
-## Features
+## 주요 기능
 
-- Create, read, update, and delete opportunities
-- Move deals forward or backward across pipeline stages
-- Search by company, contact, owner, stage, priority, or next action
-- Filter by stage and priority
-- Track total pipeline value, weighted forecast, total deals, and active accounts
-- Create local users and enforce stage transition validation
+- 영업기회 생성, 조회, 수정, 삭제
+- 단계별 파이프라인 보드
+- 단계 이동 및 단계 이동 Validation
+- 회사명, 담당자, Owner, 단계, 우선순위, 다음 액션 검색
+- 단계 및 우선순위 필터
+- 전체 Pipeline 금액, 가중 Forecast, Deal 수, Account 수 요약
+- 로컬 사용자 생성
+- 관리자 승인 및 Owner 권한 검증
 
-## Stack
+## 기술 스택
 
-- Spring Boot 2.7
+- Java 8 기준
+- Spring Boot 2.7.18
 - Spring Web
 - Spring Data JPA
-- H2 in-memory database for local temporary runs
-- MySQL
-- Static HTML/CSS/JavaScript served by Spring Boot
+- H2 인메모리 DB: 기본 로컬 임시 실행용
+- PostgreSQL: 실제 DB 실행용
+- Spring Boot 정적 리소스로 제공되는 HTML/CSS/JavaScript 프론트
 
-## Run
+## 기본 실행: H2 임시 DB
 
-For a temporary local database, just run:
+PostgreSQL 없이 바로 실행하려면 아래 명령어를 사용합니다.
 
 ```powershell
 mvn spring-boot:run
 ```
 
-Open:
+브라우저에서 접속:
 
 ```text
-http://localhost:8080
+http://localhost:8081
 ```
 
-The default database is H2 in-memory, so data resets when the app stops. You can inspect it at:
+기본 DB는 H2 인메모리 DB입니다. 앱을 종료하면 데이터가 초기화됩니다.
+
+H2 콘솔:
 
 ```text
-http://localhost:8080/h2-console
+http://localhost:8081/h2-console
 ```
 
-H2 console settings:
+H2 콘솔 접속 정보:
 
 - JDBC URL: `jdbc:h2:mem:b2b_crm`
 - User Name: `sa`
-- Password: leave empty
+- Password: 비워두기
 
-In IntelliJ, run `B2bCrmApplication`. You do not need any MySQL environment variables for the default H2 run.
+IntelliJ에서는 `B2bCrmApplication`을 실행하면 됩니다. 기본 H2 실행에는 별도 DB 환경변수가 필요 없습니다.
 
-Default users:
+## 기본 사용자
 
-- Admin: `Admin` / `Admin`
-- Sample owners: `J. Kim` / `password`, `S. Lee` / `password`, `M. Han` / `password`
+- 관리자: `Admin` / `Admin`
+- 샘플 Owner: `J. Kim` / `password`
+- 샘플 Owner: `S. Lee` / `password`
+- 샘플 Owner: `M. Han` / `password`
 
-On Windows, the app automatically runs `taskkill` against an existing process that is already listening on the configured server port before Spring Boot starts. This prevents the common `Port 8080 was already in use` startup error during local development.
+## Windows 포트 자동 정리
 
-To disable that behavior, add this VM option:
+Windows에서는 앱 시작 전에 설정된 서버 포트를 이미 사용 중인 프로세스를 `taskkill`로 자동 종료합니다. 로컬 개발 중 `Port 8081 was already in use` 오류를 줄이기 위한 기능입니다.
+
+이 기능을 끄려면 VM option에 아래 값을 추가합니다.
 
 ```text
 -Dlocal.port.cleaner.enabled=false
 ```
 
-If you want to run on another port, add this program argument in the run configuration:
+다른 포트로 실행하려면 program argument에 아래처럼 추가합니다.
 
 ```text
 --server.port=18080
 ```
 
-## Run With MySQL
+## PostgreSQL로 실행
 
-Create or start a local MySQL server, then run with the `mysql` profile:
+PostgreSQL을 사용하려면 먼저 로컬에 PostgreSQL 서버가 설치 및 실행 중이어야 합니다.
 
-```powershell
-$env:DB_USERNAME="root"
-$env:DB_PASSWORD="your-password"
-mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+필요한 것:
+
+- PostgreSQL 서버
+- 접속 가능한 DB 사용자
+- `b2b_crm` 데이터베이스
+- 해당 사용자에게 `b2b_crm` DB 권한
+
+예시 SQL:
+
+```sql
+CREATE DATABASE b2b_crm;
+CREATE USER crm_user WITH PASSWORD 'crm_password';
+GRANT ALL PRIVILEGES ON DATABASE b2b_crm TO crm_user;
 ```
 
-You can override the database URL with `DB_URL`.
+PowerShell 실행 예시:
+
+```powershell
+$env:DB_USERNAME="crm_user"
+$env:DB_PASSWORD="crm_password"
+$env:DB_URL="jdbc:postgresql://localhost:5432/b2b_crm"
+mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+```
+
+IntelliJ에서 PostgreSQL 프로필로 실행하려면 Run Configuration에 아래 값을 설정합니다.
+
+Environment variables:
+
+```text
+DB_USERNAME=crm_user;DB_PASSWORD=crm_password;DB_URL=jdbc:postgresql://localhost:5432/b2b_crm
+```
+
+Active profiles 또는 Program arguments:
+
+```text
+--spring.profiles.active=postgres
+```
 
 ## API
 
@@ -95,15 +132,13 @@ You can override the database URL with `DB_URL`.
 - `DELETE /api/deals/{id}`
 - `POST /api/users`
 
-## Stage Rules
+## 단계 이동 규칙
 
-The active forward flow is:
+- `Registration -> Access`: 고객정보와 예산 Value가 필요합니다.
+- `Access -> Go - No Go`: 영업기회 장소와 수주 예정 물품 또는 자재가 필요합니다.
+- `Go - No Go -> Award`: 관리자 승인이 필요합니다.
+- `Award -> Closed`: 영업기회를 만든 Owner 또는 관리자만 가능합니다.
 
-```text
-Registration -> Access -> Go - No Go -> Award -> Closed
-```
+## 참고
 
-- Registration to Access requires customer information and budget value.
-- Access to Go - No Go requires opportunity location and expected items or materials.
-- Go - No Go to Award requires admin approval.
-- Award to Closed requires the deal owner or an admin.
+현재 사용자 비밀번호는 데모용으로 평문 저장됩니다. 실제 운영 환경에서는 Spring Security와 BCrypt 같은 비밀번호 해시 처리가 필요합니다.

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,136 +11,146 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">B2B CRM</p>
-          <h1>Deal Pipeline</h1>
+          <h1 data-i18n="appTitle">Deal Pipeline</h1>
         </div>
-        <button class="primary" id="newDealButton" type="button">New Deal</button>
+        <div class="topbar-actions">
+          <label class="language-picker">
+            <span data-i18n="language">Language</span>
+            <select id="languageSelect" aria-label="Language">
+              <option value="en">English</option>
+              <option value="ko">한국어</option>
+              <option value="ja">日本語</option>
+            </select>
+          </label>
+          <button class="primary" id="newDealButton" type="button" data-i18n="newDeal">New Deal</button>
+        </div>
       </header>
 
-      <section class="user-panel" aria-label="Current user">
+      <section class="user-panel" aria-label="Current user" data-i18n-aria-label="currentUser">
         <label>
-          <span>User</span>
-          <input id="currentUsername" placeholder="Admin" value="Admin" maxlength="60" />
+          <span data-i18n="user">User</span>
+          <input id="currentUsername" placeholder="Admin" data-i18n-placeholder="adminPlaceholder" value="Admin" maxlength="60" />
         </label>
         <label>
-          <span>Password</span>
-          <input id="currentPassword" placeholder="Admin" value="Admin" maxlength="120" type="password" />
+          <span data-i18n="password">Password</span>
+          <input id="currentPassword" placeholder="Admin" data-i18n-placeholder="adminPlaceholder" value="Admin" maxlength="120" type="password" />
         </label>
-        <button class="ghost" id="createUserButton" type="button">Create User</button>
+        <button class="ghost" id="createUserButton" type="button" data-i18n="createUser">Create User</button>
       </section>
 
-      <section class="metrics" aria-label="Pipeline summary">
+      <section class="metrics" aria-label="Pipeline summary" data-i18n-aria-label="pipelineSummary">
         <div>
           <span id="totalDeals">0</span>
-          <p>Total deals</p>
+          <p data-i18n="totalDeals">Total deals</p>
         </div>
         <div>
           <span id="totalValue">$0</span>
-          <p>Pipeline value</p>
+          <p data-i18n="pipelineValue">Pipeline value</p>
         </div>
         <div>
           <span id="weightedValue">$0</span>
-          <p>Weighted forecast</p>
+          <p data-i18n="weightedForecast">Weighted forecast</p>
         </div>
         <div>
           <span id="activeAccounts">0</span>
-          <p>Active accounts</p>
+          <p data-i18n="activeAccounts">Active accounts</p>
         </div>
       </section>
 
-      <section class="controls" aria-label="Pipeline controls">
+      <section class="controls" aria-label="Pipeline controls" data-i18n-aria-label="pipelineControls">
         <label class="search">
-          <span>Search</span>
-          <input id="searchInput" type="search" placeholder="Company, owner, next action" />
+          <span data-i18n="search">Search</span>
+          <input id="searchInput" type="search" placeholder="Company, owner, next action" data-i18n-placeholder="searchPlaceholder" />
         </label>
         <label>
-          <span>Stage</span>
+          <span data-i18n="stage">Stage</span>
           <select id="stageFilter">
-            <option value="all">All stages</option>
+            <option value="all" data-i18n="allStages">All stages</option>
           </select>
         </label>
         <label>
-          <span>Priority</span>
+          <span data-i18n="priority">Priority</span>
           <select id="priorityFilter">
-            <option value="all">All priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
+            <option value="all" data-i18n="allPriorities">All priorities</option>
+            <option value="High" data-priority-option="HIGH">High</option>
+            <option value="Medium" data-priority-option="MEDIUM">Medium</option>
+            <option value="Low" data-priority-option="LOW">Low</option>
           </select>
         </label>
       </section>
 
-      <section class="pipeline" id="pipeline" aria-label="Deal pipeline"></section>
+      <section class="pipeline" id="pipeline" aria-label="Deal pipeline" data-i18n-aria-label="dealPipeline"></section>
     </main>
 
     <dialog id="dealDialog" aria-labelledby="dialogTitle">
       <form method="dialog" class="deal-form" id="dealForm">
         <div class="dialog-head">
           <div>
-            <p class="eyebrow">Opportunity</p>
+            <p class="eyebrow" data-i18n="opportunity">Opportunity</p>
             <h2 id="dialogTitle">New Deal</h2>
           </div>
-          <button class="icon-button" id="closeDialogButton" type="button" aria-label="Close">x</button>
+          <button class="icon-button" id="closeDialogButton" type="button" aria-label="Close" data-i18n-aria-label="close">x</button>
         </div>
 
         <input id="dealId" type="hidden" />
 
         <div class="form-grid">
           <label>
-            <span>Company</span>
+            <span data-i18n="company">Company</span>
             <input id="company" required maxlength="80" />
           </label>
           <label>
-            <span>Contact</span>
+            <span data-i18n="contact">Contact</span>
             <input id="contact" required maxlength="80" />
           </label>
           <label>
-            <span>Owner</span>
+            <span data-i18n="owner">Owner</span>
             <input id="owner" required maxlength="60" />
           </label>
           <label>
-            <span>Stage</span>
+            <span data-i18n="stage">Stage</span>
             <select id="stage" required></select>
           </label>
           <label>
-            <span>Value</span>
+            <span data-i18n="value">Value</span>
             <input id="value" required min="0" step="1000" type="number" />
           </label>
           <label>
-            <span>Probability</span>
+            <span data-i18n="probability">Probability</span>
             <input id="probability" required min="0" max="100" step="5" type="number" />
           </label>
           <label>
-            <span>Priority</span>
+            <span data-i18n="priority">Priority</span>
             <select id="priority" required>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
+              <option value="HIGH" data-priority-option="HIGH">High</option>
+              <option value="MEDIUM" data-priority-option="MEDIUM">Medium</option>
+              <option value="LOW" data-priority-option="LOW">Low</option>
             </select>
           </label>
           <label>
-            <span>Close date</span>
+            <span data-i18n="closeDate">Close date</span>
             <input id="closeDate" required type="date" />
           </label>
           <label>
-            <span>Opportunity location</span>
+            <span data-i18n="opportunityLocation">Opportunity location</span>
             <input id="opportunityLocation" maxlength="120" />
           </label>
           <label>
-            <span>Items or materials</span>
+            <span data-i18n="expectedItems">Items or materials</span>
             <input id="expectedItems" maxlength="180" />
           </label>
         </div>
 
         <label>
-          <span>Next action</span>
+          <span data-i18n="nextAction">Next action</span>
           <textarea id="nextAction" required rows="3" maxlength="180"></textarea>
         </label>
 
         <div class="form-actions">
-          <button class="ghost danger" id="deleteButton" type="button">Delete</button>
+          <button class="ghost danger" id="deleteButton" type="button" data-i18n="delete">Delete</button>
           <div>
-            <button class="ghost" id="cancelButton" type="button">Cancel</button>
-            <button class="primary" type="submit">Save Deal</button>
+            <button class="ghost" id="cancelButton" type="button" data-i18n="cancel">Cancel</button>
+            <button class="primary" type="submit" data-i18n="saveDeal">Save Deal</button>
           </div>
         </div>
       </form>
@@ -171,8 +181,8 @@
           <span class="value"></span>
         </footer>
         <div class="move-row">
-          <button class="move-button" data-direction="back" type="button">Prev</button>
-          <button class="move-button" data-direction="next" type="button">Next</button>
+          <button class="move-button" data-direction="back" type="button"></button>
+          <button class="move-button" data-direction="next" type="button"></button>
         </div>
       </article>
     </template>
