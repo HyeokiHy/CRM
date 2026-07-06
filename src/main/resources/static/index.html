@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>B2B CRM Pipeline</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">B2B CRM</p>
+          <h1>Deal Pipeline</h1>
+        </div>
+        <button class="primary" id="newDealButton" type="button">New Deal</button>
+      </header>
+
+      <section class="user-panel" aria-label="Current user">
+        <label>
+          <span>User</span>
+          <input id="currentUsername" placeholder="Admin" value="Admin" maxlength="60" />
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="currentPassword" placeholder="Admin" value="Admin" maxlength="120" type="password" />
+        </label>
+        <button class="ghost" id="createUserButton" type="button">Create User</button>
+      </section>
+
+      <section class="metrics" aria-label="Pipeline summary">
+        <div>
+          <span id="totalDeals">0</span>
+          <p>Total deals</p>
+        </div>
+        <div>
+          <span id="totalValue">$0</span>
+          <p>Pipeline value</p>
+        </div>
+        <div>
+          <span id="weightedValue">$0</span>
+          <p>Weighted forecast</p>
+        </div>
+        <div>
+          <span id="activeAccounts">0</span>
+          <p>Active accounts</p>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Pipeline controls">
+        <label class="search">
+          <span>Search</span>
+          <input id="searchInput" type="search" placeholder="Company, owner, next action" />
+        </label>
+        <label>
+          <span>Stage</span>
+          <select id="stageFilter">
+            <option value="all">All stages</option>
+          </select>
+        </label>
+        <label>
+          <span>Priority</span>
+          <select id="priorityFilter">
+            <option value="all">All priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="pipeline" id="pipeline" aria-label="Deal pipeline"></section>
+    </main>
+
+    <dialog id="dealDialog" aria-labelledby="dialogTitle">
+      <form method="dialog" class="deal-form" id="dealForm">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">Opportunity</p>
+            <h2 id="dialogTitle">New Deal</h2>
+          </div>
+          <button class="icon-button" id="closeDialogButton" type="button" aria-label="Close">x</button>
+        </div>
+
+        <input id="dealId" type="hidden" />
+
+        <div class="form-grid">
+          <label>
+            <span>Company</span>
+            <input id="company" required maxlength="80" />
+          </label>
+          <label>
+            <span>Contact</span>
+            <input id="contact" required maxlength="80" />
+          </label>
+          <label>
+            <span>Owner</span>
+            <input id="owner" required maxlength="60" />
+          </label>
+          <label>
+            <span>Stage</span>
+            <select id="stage" required></select>
+          </label>
+          <label>
+            <span>Value</span>
+            <input id="value" required min="0" step="1000" type="number" />
+          </label>
+          <label>
+            <span>Probability</span>
+            <input id="probability" required min="0" max="100" step="5" type="number" />
+          </label>
+          <label>
+            <span>Priority</span>
+            <select id="priority" required>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </label>
+          <label>
+            <span>Close date</span>
+            <input id="closeDate" required type="date" />
+          </label>
+          <label>
+            <span>Opportunity location</span>
+            <input id="opportunityLocation" maxlength="120" />
+          </label>
+          <label>
+            <span>Items or materials</span>
+            <input id="expectedItems" maxlength="180" />
+          </label>
+        </div>
+
+        <label>
+          <span>Next action</span>
+          <textarea id="nextAction" required rows="3" maxlength="180"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button class="ghost danger" id="deleteButton" type="button">Delete</button>
+          <div>
+            <button class="ghost" id="cancelButton" type="button">Cancel</button>
+            <button class="primary" type="submit">Save Deal</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="stageTemplate">
+      <article class="stage-column">
+        <header>
+          <div>
+            <h2></h2>
+            <p></p>
+          </div>
+          <span class="stage-count"></span>
+        </header>
+        <div class="deal-list"></div>
+      </article>
+    </template>
+
+    <template id="dealTemplate">
+      <article class="deal-card">
+        <button class="deal-main" type="button">
+          <span class="deal-title"></span>
+          <span class="deal-meta"></span>
+          <span class="deal-action"></span>
+        </button>
+        <footer>
+          <span class="priority"></span>
+          <span class="value"></span>
+        </footer>
+        <div class="move-row">
+          <button class="move-button" data-direction="back" type="button">Prev</button>
+          <button class="move-button" data-direction="next" type="button">Next</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
