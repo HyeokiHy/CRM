@@ -27,6 +27,10 @@ Registration -> Access -> Go - No Go -> Award -> Closed
 - PostgreSQL: 실제 DB 실행용
 - Spring Boot 정적 리소스로 제공되는 HTML/CSS/JavaScript 프론트
 
+## 백엔드 구조
+
+백엔드는 일반적인 Spring Layered Architecture 기반으로 정리했습니다. 기능별 패키지 안에서 Controller, Service, Repository, Entity 역할을 분리하고, 요청/응답 DTO와 수동 Mapper를 별도 패키지로 두어 API 응답에서 Entity를 직접 반환하지 않도록 구성했습니다.
+
 ## 기본 실행: H2 임시 DB
 
 PostgreSQL 없이 바로 실행하려면 아래 명령어를 사용합니다.

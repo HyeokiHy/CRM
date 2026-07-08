@@ -1,5 +1,8 @@
 package com.example.b2bcrm.user;
 
+import com.example.b2bcrm.user.dto.UserCreateRequest;
+import com.example.b2bcrm.user.dto.UserResponse;
+import com.example.b2bcrm.user.mapper.UserMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -8,22 +11,21 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserService {
 
     private final AppUserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserService(AppUserRepository userRepository) {
+    public UserService(AppUserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
-    public UserResponse createUser(UserRequest request) {
+    public UserResponse createUser(UserCreateRequest request) {
         String username = request.getUsername().trim();
         if (userRepository.existsByUsernameIgnoreCase(username)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists.");
         }
 
-        AppUser user = new AppUser();
-        user.setUsername(username);
-        user.setPassword(request.getPassword());
-        user.setRole(AppUserRole.USER);
-        return new UserResponse(userRepository.save(user));
+        AppUser user = userMapper.toEntity(request);
+        return userMapper.toResponse(userRepository.save(user));
     }
 
     public AppUser authenticate(String username, String password) {

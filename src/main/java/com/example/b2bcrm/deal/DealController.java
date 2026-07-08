@@ -3,6 +3,10 @@ package com.example.b2bcrm.deal;
 import java.net.URI;
 import java.util.List;
 import javax.validation.Valid;
+import com.example.b2bcrm.deal.dto.DealCreateRequest;
+import com.example.b2bcrm.deal.dto.DealMoveRequest;
+import com.example.b2bcrm.deal.dto.DealResponse;
+import com.example.b2bcrm.deal.dto.DealUpdateRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +44,7 @@ public class DealController {
     }
 
     @PostMapping
-    public ResponseEntity<DealResponse> createDeal(@Valid @RequestBody DealRequest request) {
+    public ResponseEntity<DealResponse> createDeal(@Valid @RequestBody DealCreateRequest request) {
         DealResponse created = dealService.createDeal(request);
         return ResponseEntity
             .created(URI.create("/api/deals/" + created.getId()))
@@ -48,13 +52,13 @@ public class DealController {
     }
 
     @PutMapping("/{id}")
-    public DealResponse updateDeal(@PathVariable Long id, @Valid @RequestBody DealRequest request) {
-        return dealService.updateDeal(id, request);
+    public ResponseEntity<DealResponse> updateDeal(@PathVariable Long id, @Valid @RequestBody DealUpdateRequest request) {
+        return ResponseEntity.ok(dealService.updateDeal(id, request));
     }
 
     @PatchMapping("/{id}/move")
-    public DealResponse moveDeal(@PathVariable Long id, @Valid @RequestBody MoveDealRequest request) {
-        return dealService.moveDeal(id, request);
+    public ResponseEntity<DealResponse> moveDeal(@PathVariable Long id, @Valid @RequestBody DealMoveRequest request) {
+        return ResponseEntity.ok(dealService.moveDeal(id, request));
     }
 
     @DeleteMapping("/{id}")

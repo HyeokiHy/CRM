@@ -4,6 +4,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import com.example.b2bcrm.deal.dto.DealCreateRequest;
+import com.example.b2bcrm.deal.dto.DealMoveRequest;
+import com.example.b2bcrm.deal.dto.DealResponse;
+import com.example.b2bcrm.deal.dto.DealUpdateRequest;
+import com.example.b2bcrm.deal.mapper.DealMapper;
 import com.example.b2bcrm.user.AppUser;
 import com.example.b2bcrm.user.UserService;
 import org.springframework.http.HttpStatus;
@@ -15,10 +20,12 @@ public class DealService {
 
     private final DealRepository dealRepository;
     private final UserService userService;
+    private final DealMapper dealMapper;
 
-    public DealService(DealRepository dealRepository, UserService userService) {
+    public DealService(DealRepository dealRepository, UserService userService, DealMapper dealMapper) {
         this.dealRepository = dealRepository;
         this.userService = userService;
+        this.dealMapper = dealMapper;
     }
 
     public List<DealResponse> findDeals(String search, String stage, String priority) {
@@ -31,27 +38,26 @@ public class DealService {
             .filter(deal -> matchesStage(deal, normalizedStage))
             .filter(deal -> matchesPriority(deal, normalizedPriority))
             .sorted(Comparator.comparing(Deal::getCloseDate))
-            .map(DealResponse::new)
+            .map(dealMapper::toResponse)
             .collect(Collectors.toList());
     }
 
     public DealResponse findDeal(Long id) {
-        return new DealResponse(getDeal(id));
+        return dealMapper.toResponse(getDeal(id));
     }
 
-    public DealResponse createDeal(DealRequest request) {
-        Deal deal = new Deal();
-        applyRequest(deal, request);
-        return new DealResponse(dealRepository.save(deal));
+    public DealResponse createDeal(DealCreateRequest request) {
+        Deal deal = dealMapper.toEntity(request);
+        return dealMapper.toResponse(dealRepository.save(deal));
     }
 
-    public DealResponse updateDeal(Long id, DealRequest request) {
+    public DealResponse updateDeal(Long id, DealUpdateRequest request) {
         Deal deal = getDeal(id);
-        applyRequest(deal, request);
-        return new DealResponse(dealRepository.save(deal));
+        dealMapper.updateEntity(deal, request);
+        return dealMapper.toResponse(dealRepository.save(deal));
     }
 
-    public DealResponse moveDeal(Long id, MoveDealRequest request) {
+    public DealResponse moveDeal(Long id, DealMoveRequest request) {
         Deal deal = getDeal(id);
         AppUser actor = userService.authenticate(request.getUsername(), request.getPassword());
         DealStage nextStage;
@@ -67,7 +73,7 @@ public class DealService {
 
         deal.setStage(nextStage);
         deal.setProbability(nextStage.getDefaultProbability());
-        return new DealResponse(dealRepository.save(deal));
+        return dealMapper.toResponse(dealRepository.save(deal));
     }
 
     private void validateForwardMove(Deal deal, DealStage nextStage, AppUser actor) {
@@ -140,20 +146,6 @@ public class DealService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Deal not found."));
     }
 
-    private void applyRequest(Deal deal, DealRequest request) {
-        deal.setCompany(request.getCompany().trim());
-        deal.setContact(request.getContact().trim());
-        deal.setOwner(request.getOwner().trim());
-        deal.setStage(request.getStage());
-        deal.setValue(request.getValue());
-        deal.setProbability(request.getProbability());
-        deal.setPriority(request.getPriority());
-        deal.setCloseDate(request.getCloseDate());
-        deal.setNextAction(request.getNextAction().trim());
-        deal.setOpportunityLocation(trimToNull(request.getOpportunityLocation()));
-        deal.setExpectedItems(trimToNull(request.getExpectedItems()));
-    }
-
     private boolean matchesSearch(Deal deal, String search) {
         if (search.isEmpty()) {
             return true;
@@ -189,13 +181,6 @@ public class DealService {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String trimToNull(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-        return value.trim();
     }
 
     private String nullToEmpty(String value) {
