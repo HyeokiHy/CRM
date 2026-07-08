@@ -92,7 +92,7 @@ public class DealService {
         }
 
         if (deal.getStage() == DealStage.GO_NO_GO && nextStage == DealStage.AWARD) {
-            requireAdmin(actor, "Only an admin can approve a Go - No Go deal for Award.");
+            requireAdmin(actor);
             return;
         }
 
@@ -119,9 +119,12 @@ public class DealService {
         }
     }
 
-    private void requireAdmin(AppUser actor, String message) {
+    private void requireAdmin(AppUser actor) {
         if (!userService.isAdmin(actor)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Only an admin can approve a Go - No Go deal for Award."
+            );
         }
     }
 

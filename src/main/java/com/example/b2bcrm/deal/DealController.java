@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/deals")
+@SuppressWarnings("unused")
 public class DealController {
 
     private final DealService dealService;
