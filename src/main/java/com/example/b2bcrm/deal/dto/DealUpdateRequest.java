@@ -1,7 +1,9 @@
-package com.example.b2bcrm.deal;
+package com.example.b2bcrm.deal.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import com.example.b2bcrm.deal.DealStage;
+import com.example.b2bcrm.deal.Priority;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -9,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class DealRequest {
+public class DealUpdateRequest {
 
     @NotBlank
     @Size(max = 80)

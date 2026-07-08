@@ -1,4 +1,4 @@
-package com.example.b2bcrm;
+package com.example.b2bcrm.common.config;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,14 +7,14 @@ import java.lang.management.ManagementFactory;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-final class LocalPortCleaner {
+public final class LocalPortCleaner {
 
     private static final int DEFAULT_PORT = 8080;
 
     private LocalPortCleaner() {
     }
 
-    static void killProcessOnServerPort(String[] args) {
+    public static void killProcessOnServerPort(String[] args) {
         if (!isWindows() || isDisabled()) {
             return;
         }

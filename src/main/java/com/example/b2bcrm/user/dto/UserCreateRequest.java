@@ -1,9 +1,9 @@
-package com.example.b2bcrm.user;
+package com.example.b2bcrm.user.dto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-public class UserRequest {
+public class UserCreateRequest {
 
     @NotBlank
     @Size(max = 60)

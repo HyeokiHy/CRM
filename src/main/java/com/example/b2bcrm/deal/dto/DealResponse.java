@@ -1,4 +1,4 @@
-package com.example.b2bcrm.deal;
+package com.example.b2bcrm.deal.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,23 +23,40 @@ public class DealResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public DealResponse(Deal deal) {
-        id = deal.getId();
-        company = deal.getCompany();
-        contact = deal.getContact();
-        owner = deal.getOwner();
-        stage = deal.getStage().getLabel();
-        stageCode = deal.getStage().name();
-        value = deal.getValue();
-        probability = deal.getProbability();
-        priority = deal.getPriority().getLabel();
-        priorityCode = deal.getPriority().name();
-        closeDate = deal.getCloseDate();
-        nextAction = deal.getNextAction();
-        opportunityLocation = deal.getOpportunityLocation();
-        expectedItems = deal.getExpectedItems();
-        createdAt = deal.getCreatedAt();
-        updatedAt = deal.getUpdatedAt();
+    public DealResponse(
+        Long id,
+        String company,
+        String contact,
+        String owner,
+        String stage,
+        String stageCode,
+        BigDecimal value,
+        Integer probability,
+        String priority,
+        String priorityCode,
+        LocalDate closeDate,
+        String nextAction,
+        String opportunityLocation,
+        String expectedItems,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this.id = id;
+        this.company = company;
+        this.contact = contact;
+        this.owner = owner;
+        this.stage = stage;
+        this.stageCode = stageCode;
+        this.value = value;
+        this.probability = probability;
+        this.priority = priority;
+        this.priorityCode = priorityCode;
+        this.closeDate = closeDate;
+        this.nextAction = nextAction;
+        this.opportunityLocation = opportunityLocation;
+        this.expectedItems = expectedItems;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public Long getId() {

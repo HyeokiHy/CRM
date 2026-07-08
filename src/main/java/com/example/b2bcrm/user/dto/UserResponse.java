@@ -1,4 +1,6 @@
-package com.example.b2bcrm.user;
+package com.example.b2bcrm.user.dto;
+
+import com.example.b2bcrm.user.AppUserRole;
 
 public class UserResponse {
 
@@ -6,10 +8,10 @@ public class UserResponse {
     private final String username;
     private final AppUserRole role;
 
-    public UserResponse(AppUser user) {
-        id = user.getId();
-        username = user.getUsername();
-        role = user.getRole();
+    public UserResponse(Long id, String username, AppUserRole role) {
+        this.id = id;
+        this.username = username;
+        this.role = role;
     }
 
     public Long getId() {

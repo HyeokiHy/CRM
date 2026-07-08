@@ -1,8 +1,8 @@
-package com.example.b2bcrm.deal;
+package com.example.b2bcrm.deal.dto;
 
 import javax.validation.constraints.NotBlank;
 
-public class MoveDealRequest {
+public class DealMoveRequest {
 
     @NotBlank
     private String direction;
