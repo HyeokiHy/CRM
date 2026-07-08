@@ -2,7 +2,7 @@ package com.example.b2bcrm.deal;
 
 import java.net.URI;
 import java.util.List;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import com.example.b2bcrm.deal.dto.DealCreateRequest;
 import com.example.b2bcrm.deal.dto.DealMoveRequest;
 import com.example.b2bcrm.deal.dto.DealResponse;

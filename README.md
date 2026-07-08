@@ -19,8 +19,8 @@ Registration -> Access -> Go - No Go -> Award -> Closed
 
 ## 기술 스택
 
-- Java 8 기준
-- Spring Boot 2.7.18
+- Java 17 기준
+- Spring Boot 3.3.13
 - Spring Web
 - Spring Data JPA
 - H2 인메모리 DB: 기본 로컬 임시 실행용
