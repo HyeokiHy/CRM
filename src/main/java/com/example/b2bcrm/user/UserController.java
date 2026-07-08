@@ -1,7 +1,7 @@
 package com.example.b2bcrm.user;
 
 import java.net.URI;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import com.example.b2bcrm.user.dto.UserCreateRequest;
 import com.example.b2bcrm.user.dto.UserResponse;
 import org.springframework.http.ResponseEntity;

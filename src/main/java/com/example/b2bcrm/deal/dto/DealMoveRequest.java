@@ -1,6 +1,6 @@
 package com.example.b2bcrm.deal.dto;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class DealMoveRequest {
 

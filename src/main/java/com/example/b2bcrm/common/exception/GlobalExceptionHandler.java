@@ -3,6 +3,7 @@ package com.example.b2bcrm.common.exception;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,11 +16,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException ex) {
+        HttpStatusCode statusCode = ex.getStatusCode();
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("status", ex.getStatus().value());
-        body.put("error", ex.getStatus().getReasonPhrase());
+        body.put("status", statusCode.value());
+        body.put("error", getReasonPhrase(statusCode));
         body.put("message", ex.getReason());
-        return ResponseEntity.status(ex.getStatus()).body(body);
+        return ResponseEntity.status(statusCode).body(body);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,5 +38,12 @@ public class GlobalExceptionHandler {
         body.put("message", "Invalid request.");
         body.put("fieldErrors", fieldErrors);
         return ResponseEntity.badRequest().body(body);
+    }
+
+    private String getReasonPhrase(HttpStatusCode statusCode) {
+        if (statusCode instanceof HttpStatus) {
+            return ((HttpStatus) statusCode).getReasonPhrase();
+        }
+        return statusCode.toString();
     }
 }
