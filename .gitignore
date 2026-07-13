@@ -3,3 +3,8 @@ target/
 .qodo/
 .mvn/wrapper/maven-wrapper.jar
 *.log
+# Python
+/playwright/.venv/
+/playwright/tests/.venv/
+/playwright/__pycache__/
+/playwright/.pytest_cache/
