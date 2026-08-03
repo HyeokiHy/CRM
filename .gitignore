@@ -8,3 +8,5 @@ target/
 /playwright/tests/.venv/
 /playwright/__pycache__/
 /playwright/.pytest_cache/
+/playwright/tests/**/__pycache__/
+/.pytest_cache/
