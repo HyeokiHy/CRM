@@ -1,0 +1,68 @@
+name: CRM test suite
+
+on:
+  push:
+    branches: [main, master, "260821"]
+  pull_request:
+    branches: [main, master, "260821"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: playwright/requirements.txt
+
+      - name: Install Python and Playwright dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r playwright/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run CRM tests
+        env:
+          CRM_BASE_URL: http://localhost:8081
+        run: |
+          mvn spring-boot:run > spring-boot.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error "$CRM_BASE_URL" > /dev/null; then
+              echo "Spring Boot is ready."
+              break
+            fi
+
+            if [ "$attempt" -eq 30 ]; then
+              echo "Spring Boot did not become ready."
+              cat spring-boot.log
+              exit 1
+            fi
+
+            echo "Waiting for Spring Boot ($attempt/30)..."
+            sleep 2
+          done
+
+          if ! python -m pytest; then
+            echo "pytest failed. Spring Boot log follows:"
+            cat spring-boot.log
+            exit 1
+          fi
