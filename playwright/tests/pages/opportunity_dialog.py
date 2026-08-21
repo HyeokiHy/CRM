@@ -23,8 +23,12 @@ class OpportunityDialog:
         }
         for fieldName, label in fieldLabels.items():
             self.field(label).fill(values[fieldName])
-        self.field("Stage").select_option(values["stage"])
-        self.field("Priority").select_option(values["priority"])
+        self.dialog.get_by_role("combobox", name="Stage", exact=True).select_option(
+            values["stage"]
+        )
+        self.dialog.get_by_role("combobox", name="Priority", exact=True).select_option(
+            values["priority"]
+        )
 
     def submit(self) -> None:
         self.dialog.get_by_role("button", name="Save Deal", exact=True).click()
