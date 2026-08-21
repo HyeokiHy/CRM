@@ -19,6 +19,9 @@ class OpportunityData:
     def formValues(self) -> dict[str, str]:
         return {key: str(value) for key, value in asdict(self).items()}
 
+    def apiPayload(self) -> dict[str, object]:
+        return asdict(self)
+
 
 def newOpportunity(**overrides: object) -> OpportunityData:
     return OpportunityData(company=f"QA E2E {uuid4().hex[:8]}", **overrides)
