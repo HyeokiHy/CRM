@@ -39,7 +39,9 @@ jobs:
           curl --fail --location --output allure.tgz \
             "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
           tar --extract --gzip --file allure.tgz
-          echo "$GITHUB_WORKSPACE/allure-${ALLURE_VERSION}/bin" >> "$GITHUB_PATH"
+          ALLURE_BIN="$GITHUB_WORKSPACE/allure-${ALLURE_VERSION}/bin"
+          echo "$ALLURE_BIN" >> "$GITHUB_PATH"
+          export PATH="$ALLURE_BIN:$PATH"
           allure --version
       - name: Run CRM tests
         env:
