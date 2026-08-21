@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from playwright.sync_api import Page
 
@@ -7,14 +9,11 @@ from pages.opportunity_dialog import OpportunityDialog
 
 @pytest.fixture
 def baseUrl() -> str:
-    return "http://localhost:8081"
+    return os.environ.get("CRM_BASE_URL", "http://localhost:8081")
 
 
 @pytest.fixture
-def crmBoardPage(
-    page: Page,
-    baseUrl: str,
-) -> CrmBoardPage:
+def crmBoardPage(page: Page, baseUrl: str) -> CrmBoardPage:
     boardPage = CrmBoardPage(page, baseUrl)
     boardPage.open()
     return boardPage
