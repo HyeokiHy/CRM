@@ -3,7 +3,6 @@ from playwright.sync_api import Locator, Page, expect
 
 class OpportunityDialog:
     def __init__(self, page: Page) -> None:
-        self.page = page
         self.dialog = page.get_by_role("dialog")
 
     def expectOpen(self) -> None:
@@ -12,32 +11,26 @@ class OpportunityDialog:
     def expectClosed(self) -> None:
         expect(self.dialog).not_to_be_visible()
 
-    def companyInput(self) -> Locator:
-        return self.dialog.get_by_label("Company", exact=True)
+    def field(self, label: str) -> Locator:
+        return self.dialog.get_by_label(label, exact=True)
 
-    def ownerInput(self) -> Locator:
-        return self.dialog.get_by_label("Owner", exact=True)
+    def fillOpportunity(self, values: dict[str, str]) -> None:
+        fieldLabels = {
+            "company": "Company", "contact": "Contact", "owner": "Owner",
+            "value": "Value", "probability": "Probability",
+            "closeDate": "Close date", "opportunityLocation": "Opportunity location",
+            "expectedItems": "Items or materials", "nextAction": "Next action",
+        }
+        for fieldName, label in fieldLabels.items():
+            self.field(label).fill(values[fieldName])
+        self.field("Stage").select_option(values["stage"])
+        self.field("Priority").select_option(values["priority"])
 
-    def stageSelect(self) -> Locator:
-        return self.dialog.get_by_label("Stage", exact=True)
+    def submit(self) -> None:
+        self.dialog.get_by_role("button", name="Save Deal", exact=True).click()
 
-    def saveButton(self) -> Locator:
-        return self.dialog.get_by_role(
-            "button",
-            name="Save Deal",
-            exact=True,
-        )
-
-    def cancelButton(self) -> Locator:
-        return self.dialog.get_by_role(
-            "button",
-            name="Cancel",
-            exact=True,
-        )
-
-    def closeButton(self) -> Locator:
-        return self.dialog.get_by_role(
-            "button",
-            name="Close",
-            exact=True,
-        )
+    def expectRequiredFieldError(self, label: str) -> None:
+        inputField = self.field(label)
+        expect(inputField).to_be_focused()
+        assert inputField.evaluate("element => element.validity.valueMissing") is True
+        assert inputField.evaluate("element => element.validationMessage")
