@@ -3,6 +3,12 @@ target/
 .qodo/
 .mvn/wrapper/maven-wrapper.jar
 *.log
+# Local environment overrides may contain credentials.
+.env
+.env.*
+!.env.example
+allure-results/
+allure-report/
 # Python
 /playwright/.venv/
 /playwright/tests/.venv/

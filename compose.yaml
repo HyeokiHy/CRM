@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-b2b_crm}
+      POSTGRES_USER: ${POSTGRES_USER:-crm_demo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crm_demo_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-b2b_crm}
+      DB_USERNAME: ${POSTGRES_USER:-crm_demo}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-crm_demo_password}
+      SERVER_PORT: 8081
+      LOCAL_PORT_CLEANER_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${CRM_PORT:-8081}:8081"
+    restart: on-failure
+
+volumes:
+  postgres-data:
