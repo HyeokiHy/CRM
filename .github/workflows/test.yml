@@ -2,9 +2,9 @@ name: CRM test suite
 
 on:
   push:
-    branches: [main, master, "260821"]
+    branches: [master]
   pull_request:
-    branches: [main, master, "260821"]
+    branches: [master]
 
 permissions:
   contents: read
