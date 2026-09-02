@@ -1,227 +1,165 @@
-# B2B CRM Pipeline
+# B2B CRM Quality Engineering Portfolio
 
 [![CRM test suite](https://github.com/HyeokiHy/CRM/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/HyeokiHy/CRM/actions/workflows/test.yml?query=branch%3Amaster)
 
-[View Allure Test Report](https://hyeokihy.github.io/CRM/)
+**[Allure Test Report 보기](https://hyeokihy.github.io/CRM/)**
 
-Spring Boot 기반의 B2B 영업기회 CRM 예제 프로젝트입니다.
+Spring Boot 기반 B2B CRM을 직접 구현하고, 단계 전환에 얽힌 Validation과 Authorization을 pytest + Playwright로 검증한 QA Engineering 포트폴리오입니다. UI/API 자동화, GitHub Actions 기반 회귀 검증, Allure Report, Docker Compose 실행 환경을 통해 Business Rule을 재현하고 결과를 확인할 수 있도록 구성했습니다.
 
-CRM 애플리케이션을 직접 구현하고, 주요 비즈니스 규칙과 Validation을 대상으로
-**pytest + Playwright 기반 UI/API 자동화 테스트**를 구성했습니다.
+## What This Project Demonstrates
 
-GitHub Actions에서 애플리케이션 실행부터 테스트, Allure Report 생성 및
-GitHub Pages 배포까지 자동으로 수행하도록 CI 파이프라인을 구성했습니다.
+- **Business Rule 기반 Test Analysis & Design**: CRM Stage Transition 조건과 실패 위험을 테스트 시나리오로 연결
+- **Playwright UI E2E Automation**: 브라우저 입력 Validation, 사용자 흐름, 화면의 최종 상태를 검증
+- **REST API Automation**: Playwright `APIRequestContext`로 CRUD contract와 대표적인 이동 규칙을 직접 검증
+- **Positive / Negative & Authorization Testing**: 거부 응답뿐 아니라 상태 불변, 허용 사용자, 변경된 probability까지 확인
+- **Independent Test Data**: UUID가 포함된 company name을 생성하고 API resource는 `finally`에서 정리
+- **Continuous Regression & Reproducibility**: GitHub Actions/Allure와 Docker Compose 기반 실행 환경 제공
 
-영업기회는 아래 단계 흐름으로 관리합니다.
+## Quality Engineering Approach
 
-```text
-Registration -> Access -> Go - No Go -> Award -> Closed
-```
+이 프로젝트의 핵심 품질 위험은 Deal이 필요한 정보나 권한 없이 다음 Stage로 이동하는 것입니다. `DealService`는 현재 Stage와 목표 Stage의 조합에 따라 Business Rule을 적용하고, 테스트는 HTTP 응답과 보드 상태를 함께 확인합니다.
 
-## 주요 기능
+| 품질 위험 | 구현된 규칙 | 검증 방식 |
+| --- | --- | --- |
+| 불완전한 고객정보로 영업 진행 | Registration → Access에 Company, Contact, 양수 Value 필요 | UI/API negative test에서 `400`과 Stage 불변 확인 |
+| 실행 정보 없이 입찰 판단 | Access → Go - No Go에 Location과 Expected Items 필요 | 각 누락 필드를 parameterize하여 거부와 상태 불변 확인 |
+| 승인 권한 우회 | Go - No Go → Award는 Admin만 허용 | 일반 사용자 `403` 후 Admin 성공과 probability `75` 확인 |
+| 타인의 Deal 종료 | Award → Closed는 Owner 또는 Admin만 허용 | 비소유자 `403` 후 Owner 성공과 probability `100` 확인 |
+| 잘못된 생성/수정 입력 | DTO Bean Validation과 HTML required/min/max 적용 | UI 필수값 차단 및 API 응답/상태 assertion |
 
-- 영업기회 생성, 조회, 수정, 삭제
-- 단계별 파이프라인 보드
-- 단계 이동 및 단계 이동 Validation
-- 회사명, 담당자, Owner, 단계, 우선순위, 다음 액션 검색
-- 단계 및 우선순위 필터
-- 전체 Pipeline 금액, 가중 Forecast, Deal 수, Account 수 요약
-- 로컬 사용자 생성
-- 관리자 승인 및 Owner 권한 검증
+UI E2E는 실제 브라우저 입력, dialog, card 이동처럼 사용자에게 보이는 동작을 담당합니다. API test는 UI 흐름을 반복하기보다 status code, response body, CRUD lifecycle, service validation을 REST 경계에서 빠르게 확인합니다. Negative scenario에서는 오류 메시지만 보지 않고 기존 Stage가 유지되는지도 확인하며, 권한 시나리오는 거부와 허용 경로를 한 흐름에서 검증합니다.
 
-## 테스트 자동화
+테스트 데이터는 `newOpportunity()`가 UUID suffix를 붙여 생성하므로 다른 테스트의 card를 잘못 선택할 가능성을 줄입니다. API test는 생성한 데이터를 정리하지만 UI E2E 데이터는 실행 중인 DB에 남습니다. 기본 H2는 애플리케이션 종료 시 초기화되며, persistent DB의 병렬 실행을 위한 별도 reset 전략은 아직 없습니다.
 
-CRM의 주요 Validation과 영업기회 단계 이동 규칙을
-pytest + Playwright 기반으로 자동화했습니다.
+## Automated Test Coverage
 
-### 자동화 범위
+| Scenario | Layer | Quality Risk |
+| --- | --- | --- |
+| 5개 Stage column과 seed Deal dialog 표시 | UI Smoke | 핵심 화면 또는 초기 데이터 로딩 실패 |
+| Company, Contact, Owner, Next Action 필수값 및 정상 생성 | UI E2E | 브라우저 Validation 우회, 생성 결과 미표시 |
+| Registration → Access: Value `0` 거부 | UI E2E | 예산 없는 Deal의 잘못된 진행 |
+| Access → Go - No Go: Location/Items 각각 누락 | UI E2E | 필수 실행 정보가 없는 상태 전환 |
+| Go - No Go → Award: 일반 사용자 거부, Admin 허용 | UI E2E | 관리자 승인 우회 |
+| Award → Closed: 비소유자 거부, Owner 허용 | UI E2E | 소유권 없는 사용자에 의한 종료 |
+| Deal 생성 → 조회 → 수정 → 삭제 → `404` | REST API | CRUD contract와 resource lifecycle 회귀 |
+| Registration 이동 API의 양수 Value 규칙 | REST API | service validation과 상태 불변 회귀 |
 
-- Smoke Test
-- Registration 필수값 Validation
-- Registration -> Access
-- Access -> Go - No Go
-- Go - No Go -> Award
-- Award -> Closed
-- Deal API CRUD Lifecycle
-- Deal Move API Validation
+상세 시나리오와 Business Rule mapping은 [`playwright/tests/README.md`](playwright/tests/README.md)에서 확인할 수 있습니다.
 
-UI E2E 테스트에서는 실제 사용자 흐름과 단계별 Validation을 검증하고,
-API 테스트에서는 CRUD Lifecycle과 단계 이동 API의 계약 및 상태 변경을 검증합니다.
-
-### CI / Test Report
-
-GitHub Actions에서 다음 과정을 자동으로 수행합니다.
+## Automation Architecture
 
 ```text
-Spring Boot 실행
-        ↓
-pytest + Playwright
-        ↓
-Allure Results
-        ↓
-Allure HTML Report
-        ↓
-GitHub Pages
+playwright/tests/
+├── api/test_deals_api.py          # REST contract와 resource state assertion
+├── data/opportunity_data.py       # UUID 기반 test data와 UI/API payload
+├── pages/
+│   ├── crm_board_page.py          # 보드 locator와 card/user interaction
+│   └── opportunity_dialog.py      # dialog locator, 입력, 제출 동작
+├── conftest.py                    # base URL, browser page, API request context fixture
+├── test_smoke.py
+├── test_registration_validation.py
+└── test_opportunity_stage_transition.py
 ```
 
-- CI: [GitHub Actions](https://github.com/HyeokiHy/CRM/actions)
-- Test Report: [Allure Report](https://hyeokihy.github.io/CRM/)
+Page Object는 반복되는 locator와 UI interaction을 캡슐화하고, 각 test는 Business Behavior와 assertion을 소유합니다. API는 별도 client wrapper를 만들지 않고 Playwright의 `APIRequestContext` fixture를 직접 사용합니다. 대상 URL은 `CRM_BASE_URL`로 바꿀 수 있고 기본값은 `http://localhost:8081`입니다.
 
-## 기술 스택
+## CI & Test Reporting
 
-### Application
+GitHub Actions의 `CRM test suite`는 Java 17, Python 3.13, Chromium, Allure CLI를 준비한 뒤 H2 profile로 Spring Boot를 실행합니다. HTTP 응답을 polling해 준비 상태를 확인한 후 pytest를 실행하므로 고정된 sleep에만 의존하지 않습니다.
 
-- Java 17
-- Spring Boot 3.3.13
-- Spring Web
-- Spring Data JPA
-- H2 인메모리 DB: 기본 로컬 임시 실행용
-- PostgreSQL: 실제 DB 실행용
-- HTML / CSS / JavaScript
+```text
+Application startup
+→ pytest + Playwright UI/API tests
+→ Allure Results + Spring Boot log artifact
+→ Allure HTML Report
+→ GitHub Pages (master push)
+```
 
-### Test Automation
+- [GitHub Actions 실행 결과](https://github.com/HyeokiHy/CRM/actions/workflows/test.yml?query=branch%3Amaster)
+- [Allure HTML Report](https://hyeokihy.github.io/CRM/)
 
-- Python 3.13
-- pytest
-- Playwright
-- Allure Report
+Docker 도입 후에도 CI는 더 단순한 기존 H2 방식을 유지합니다. Compose는 reviewer가 PostgreSQL까지 포함한 환경을 로컬에서 재현하기 위한 별도 실행 경로입니다.
 
-### CI/CD
+## Quick Start with Docker
 
-- GitHub Actions
-- GitHub Pages
+Docker Desktop 또는 Docker Engine + Compose plugin이 필요합니다.
 
-## 백엔드 구조
+```bash
+docker compose up --build
+```
 
-백엔드는 일반적인 Spring Layered Architecture 기반으로 정리했습니다.
+- Web: http://localhost:8081
+- REST API: http://localhost:8081/api/deals
 
-기능별 패키지 안에서 Controller, Service, Repository, Entity 역할을 분리하고,
-요청/응답 DTO와 수동 Mapper를 별도 패키지로 두어 API 응답에서 Entity를 직접 반환하지 않도록 구성했습니다.
+Compose는 PostgreSQL healthcheck가 성공한 뒤 `postgres` Spring Profile로 Application을 시작합니다. 기본 DB 계정은 **로컬 데모 전용 값**이며 실제 Secret이 아닙니다. 값을 바꾸려면 `.env.example`을 `.env`로 복사해 수정하세요. `.env`는 Git에서 제외됩니다.
 
-## 기본 실행: H2 임시 DB
+Application이 실행 중일 때 host에서 같은 자동화 suite를 실행할 수 있습니다.
 
-PostgreSQL 없이 바로 실행하려면 아래 명령어를 사용합니다.
+```bash
+python -m pip install -r playwright/requirements.txt
+python -m playwright install chromium
+python -m pytest
+```
 
-```powershell
+종료:
+
+```bash
+docker compose down
+```
+
+`postgres-data` volume은 다음 실행에도 유지됩니다. 데이터를 함께 초기화하려면 `docker compose down -v`를 사용합니다.
+
+## Application Domain
+
+```text
+Registration → Access → Go - No Go → Award → Closed
+```
+
+CRM은 영업기회의 생성·조회·수정·삭제, Stage별 pipeline board, 검색/필터, 금액 summary를 제공합니다. Stage 이동 시 고객정보와 예산, 기회 장소와 예상 품목, Admin 승인, Owner/Admin 권한을 순차적으로 확인합니다.
+
+데모 사용자:
+
+- Admin: `Admin` / `Admin`
+- Owner: `J. Kim`, `S. Lee`, `M. Han` / `password`
+
+위 credential은 로컬 테스트를 위한 seed data입니다.
+
+## Tech Stack
+
+| 영역 | 기술 |
+| --- | --- |
+| Application | Java 17, Spring Boot 3.3.13, Spring Web, Spring Data JPA, HTML/CSS/JavaScript |
+| Database | H2 (기본 로컬/CI), PostgreSQL (`postgres` profile 및 Docker Compose) |
+| Test Automation | Python 3.13, pytest, Playwright, Allure Report |
+| Infrastructure | Docker, Docker Compose, GitHub Actions, GitHub Pages |
+
+## 기존 로컬 실행 방식
+
+H2 인메모리 DB는 그대로 기본값입니다.
+
+```bash
 mvn spring-boot:run
 ```
 
-브라우저에서 접속:
+- Web: http://localhost:8081
+- H2 Console: http://localhost:8081/h2-console
+- JDBC URL: `jdbc:h2:mem:b2b_crm`, User: `sa`, Password: 비워두기
 
-```text
-http://localhost:8081
-```
-
-기본 DB는 H2 인메모리 DB입니다.
-앱을 종료하면 데이터가 초기화됩니다.
-
-H2 콘솔:
-
-```text
-http://localhost:8081/h2-console
-```
-
-H2 콘솔 접속 정보:
-
-- JDBC URL: `jdbc:h2:mem:b2b_crm`
-- User Name: `sa`
-- Password: 비워두기
-
-IntelliJ에서는 `B2bCrmApplication`을 실행하면 됩니다.
-기본 H2 실행에는 별도 DB 환경변수가 필요 없습니다.
-
-## 기본 사용자
-
-아래 계정은 로컬 테스트를 위한 데모 계정입니다.
-
-- 관리자: `Admin` / `Admin`
-- 샘플 Owner: `J. Kim` / `password`
-- 샘플 Owner: `S. Lee` / `password`
-- 샘플 Owner: `M. Han` / `password`
-
-## Windows 포트 자동 정리
-
-Windows에서는 앱 시작 전에 설정된 서버 포트를 이미 사용 중인 프로세스를
-`taskkill`로 자동 종료합니다.
-
-로컬 개발 중 `Port 8081 was already in use` 오류를 줄이기 위한 기능입니다.
-
-이 기능을 끄려면 VM option에 아래 값을 추가합니다.
-
-```text
--Dlocal.port.cleaner.enabled=false
-```
-
-다른 포트로 실행하려면 program argument에 아래처럼 추가합니다.
-
-```text
---server.port=18080
-```
-
-## PostgreSQL로 실행
-
-PostgreSQL을 사용하려면 먼저 로컬에 PostgreSQL 서버가 설치 및 실행 중이어야 합니다.
-
-필요한 것:
-
-- PostgreSQL 서버
-- 접속 가능한 DB 사용자
-- `b2b_crm` 데이터베이스
-- 해당 사용자에게 `b2b_crm` DB 권한
-
-예시 SQL:
-
-```sql
-CREATE DATABASE b2b_crm;
-CREATE USER crm_user WITH PASSWORD 'crm_password';
-GRANT ALL PRIVILEGES ON DATABASE b2b_crm TO crm_user;
-```
-
-PowerShell 실행 예시:
+로컬 PostgreSQL은 기존 `postgres` profile과 환경변수로 실행할 수 있습니다.
 
 ```powershell
-$env:DB_USERNAME="crm_user"
-$env:DB_PASSWORD="crm_password"
 $env:DB_URL="jdbc:postgresql://localhost:5432/b2b_crm"
+$env:DB_USERNAME="crm_user"
+$env:DB_PASSWORD="<local-password>"
 mvn spring-boot:run -Dspring-boot.run.profiles=postgres
 ```
 
-IntelliJ에서 PostgreSQL 프로필로 실행하려면 Run Configuration에 아래 값을 설정합니다.
+Windows의 개발 편의를 위한 port cleaner는 유지됩니다. 필요하면 `-Dlocal.port.cleaner.enabled=false`로 끌 수 있습니다.
 
-Environment variables:
+## Limitations
 
-```text
-DB_USERNAME=crm_user;DB_PASSWORD=crm_password;DB_URL=jdbc:postgresql://localhost:5432/b2b_crm
-```
-
-Active profiles 또는 Program arguments:
-
-```text
---spring.profiles.active=postgres
-```
-
-## API
-
-- `GET /api/deals`
-- `GET /api/deals/{id}`
-- `POST /api/deals`
-- `PUT /api/deals/{id}`
-- `PATCH /api/deals/{id}/move`
-- `DELETE /api/deals/{id}`
-- `POST /api/users`
-
-## 단계 이동 규칙
-
-| 단계 이동 | Validation |
-|---|---|
-| `Registration -> Access` | 고객정보와 예산 Value 필요 |
-| `Access -> Go - No Go` | 영업기회 장소와 수주 예정 물품/자재 필요 |
-| `Go - No Go -> Award` | 관리자 승인 필요 |
-| `Award -> Closed` | 영업기회를 만든 Owner 또는 관리자만 가능 |
-
-## 보안 관련 참고
-
-현재 사용자 인증은 **로컬 데모 및 테스트를 위한 단순 구현**입니다.
-
-사용자 비밀번호는 데모 목적으로 평문 저장되며, 실제 운영 환경을 가정한 인증 시스템이 아닙니다.
-Production 환경에서는 Spring Security와 BCrypt 등의 비밀번호 해시 및 인증/인가 체계가 필요합니다.
+- 인증은 Business Rule 시연을 위한 단순 username/password 비교이며 Spring Security를 사용하지 않습니다.
+- 데모 사용자 비밀번호는 평문으로 저장됩니다. 실제 서비스라면 hashing, secret 관리, session/token, authorization 정책이 필요합니다.
+- UI E2E가 생성한 데이터의 개별 cleanup과 persistent DB의 reset/parallel isolation 전략은 구현되어 있지 않습니다.
+- 현재 자동화 범위는 주요 Stage Rule과 Deal CRUD 중심이며 성능, 접근성, 보안 테스트는 포함하지 않습니다.
+- Docker Compose의 기본 credential은 로컬 데모 전용입니다. 운영 환경 배포 구성을 의미하지 않습니다.
