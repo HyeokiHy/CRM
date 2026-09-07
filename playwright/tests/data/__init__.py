@@ -1,1 +1,1 @@
-"""Confirmed UI data shared by opportunity E2E tests."""
+"""Confirmed UI data shared by Deal E2E tests."""

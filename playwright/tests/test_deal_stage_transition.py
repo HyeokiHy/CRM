@@ -1,9 +1,9 @@
 import pytest
 from playwright.sync_api import Page, Response
 
-from data.opportunity_data import OpportunityData, newOpportunity
+from data.deal_test_data import DealTestData, newDeal
 from pages.crm_board_page import CrmBoardPage
-from pages.opportunity_dialog import OpportunityDialog
+from pages.deal_dialog import DealDialog
 
 
 STAGE_NAMES = {
@@ -14,14 +14,14 @@ STAGE_NAMES = {
 }
 
 
-def createOpportunity(
+def createDeal(
     page: Page,
     board: CrmBoardPage,
-    dialog: OpportunityDialog,
-    opportunity: OpportunityData,
+    dialog: DealDialog,
+    deal: DealTestData,
 ) -> None:
-    board.newOpportunityButton().click()
-    dialog.fillOpportunity(opportunity.formValues())
+    board.newDealButton().click()
+    dialog.fillDeal(deal.formValues())
     with page.expect_response(
         lambda response: response.url.endswith("/api/deals")
         and response.request.method == "POST",
@@ -29,7 +29,7 @@ def createOpportunity(
         dialog.submit()
     assert responseInfo.value.status == 201
     dialog.expectClosed()
-    board.expectOpportunityInStage(STAGE_NAMES[opportunity.stage], opportunity.company)
+    board.expectDealInStage(STAGE_NAMES[deal.stage], deal.company)
 
 
 def moveNext(page: Page, board: CrmBoardPage, stageName: str, company: str) -> Response:
@@ -37,99 +37,99 @@ def moveNext(page: Page, board: CrmBoardPage, stageName: str, company: str) -> R
         lambda response: "/move" in response.url
         and response.request.method == "PATCH",
     ) as responseInfo:
-        board.moveOpportunity(stageName, company, "next")
+        board.moveDeal(stageName, company, "next")
     return responseInfo.value
 
 
 def test_registration_to_access_rejects_zero_budget(
     page: Page,
     crmBoardPage: CrmBoardPage,
-    opportunityDialog: OpportunityDialog,
+    dealDialog: DealDialog,
 ) -> None:
-    opportunity = newOpportunity(value=0)
-    createOpportunity(page, crmBoardPage, opportunityDialog, opportunity)
+    deal = newDeal(value=0)
+    createDeal(page, crmBoardPage, dealDialog, deal)
 
-    response = moveNext(page, crmBoardPage, "Registration", opportunity.company)
+    response = moveNext(page, crmBoardPage, "Registration", deal.company)
 
     assert response.status == 400
     assert response.json()["message"] == (
         "Registration to Access requires customer information and a budget value."
     )
-    crmBoardPage.expectOpportunityInStage("Registration", opportunity.company)
-    crmBoardPage.expectOpportunityNotInStage("Access", opportunity.company)
+    crmBoardPage.expectDealInStage("Registration", deal.company)
+    crmBoardPage.expectDealNotInStage("Access", deal.company)
 
 
 @pytest.mark.parametrize("missingField", ["opportunityLocation", "expectedItems"])
 def test_access_to_go_no_go_requires_location_and_expected_items(
     page: Page,
     crmBoardPage: CrmBoardPage,
-    opportunityDialog: OpportunityDialog,
+    dealDialog: DealDialog,
     missingField: str,
 ) -> None:
-    opportunity = newOpportunity(
+    deal = newDeal(
         stage="ACCESS",
         probability=45,
         **{missingField: ""},
     )
-    createOpportunity(page, crmBoardPage, opportunityDialog, opportunity)
+    createDeal(page, crmBoardPage, dealDialog, deal)
 
-    response = moveNext(page, crmBoardPage, "Access", opportunity.company)
+    response = moveNext(page, crmBoardPage, "Access", deal.company)
 
     assert response.status == 400
     assert response.json()["message"] == (
         "Access to Go - No Go requires opportunity location and expected items or materials."
     )
-    crmBoardPage.expectOpportunityInStage("Access", opportunity.company)
-    crmBoardPage.expectOpportunityNotInStage("Go - No Go", opportunity.company)
+    crmBoardPage.expectDealInStage("Access", deal.company)
+    crmBoardPage.expectDealNotInStage("Go - No Go", deal.company)
 
 
 def test_go_no_go_to_award_requires_admin_and_allows_admin_approval(
     page: Page,
     crmBoardPage: CrmBoardPage,
-    opportunityDialog: OpportunityDialog,
+    dealDialog: DealDialog,
 ) -> None:
-    opportunity = newOpportunity(stage="GO_NO_GO", probability=25)
-    createOpportunity(page, crmBoardPage, opportunityDialog, opportunity)
+    deal = newDeal(stage="GO_NO_GO", probability=25)
+    createDeal(page, crmBoardPage, dealDialog, deal)
     crmBoardPage.setCurrentUser("J. Kim", "password")
 
-    rejected = moveNext(page, crmBoardPage, "Go - No Go", opportunity.company)
+    rejected = moveNext(page, crmBoardPage, "Go - No Go", deal.company)
 
     assert rejected.status == 403
     assert rejected.json()["message"] == (
         "Only an admin can approve a Go - No Go deal for Award."
     )
-    crmBoardPage.expectOpportunityInStage("Go - No Go", opportunity.company)
+    crmBoardPage.expectDealInStage("Go - No Go", deal.company)
 
     crmBoardPage.setCurrentUser("Admin", "Admin")
-    approved = moveNext(page, crmBoardPage, "Go - No Go", opportunity.company)
+    approved = moveNext(page, crmBoardPage, "Go - No Go", deal.company)
 
     assert approved.status == 200
     assert approved.json()["stageCode"] == "AWARD"
     assert approved.json()["probability"] == 75
-    crmBoardPage.expectOpportunityInStage("Award", opportunity.company)
+    crmBoardPage.expectDealInStage("Award", deal.company)
 
 
 def test_award_to_closed_requires_owner_or_admin(
     page: Page,
     crmBoardPage: CrmBoardPage,
-    opportunityDialog: OpportunityDialog,
+    dealDialog: DealDialog,
 ) -> None:
-    opportunity = newOpportunity(stage="AWARD", probability=75, owner="J. Kim")
-    createOpportunity(page, crmBoardPage, opportunityDialog, opportunity)
+    deal = newDeal(stage="AWARD", probability=75, owner="J. Kim")
+    createDeal(page, crmBoardPage, dealDialog, deal)
     crmBoardPage.setCurrentUser("S. Lee", "password")
 
-    rejected = moveNext(page, crmBoardPage, "Award", opportunity.company)
+    rejected = moveNext(page, crmBoardPage, "Award", deal.company)
 
     assert rejected.status == 403
     assert rejected.json()["message"] == (
         "Only the deal owner or an admin can close an Award deal."
     )
-    crmBoardPage.expectOpportunityInStage("Award", opportunity.company)
+    crmBoardPage.expectDealInStage("Award", deal.company)
 
     crmBoardPage.setCurrentUser("J. Kim", "password")
-    closed = moveNext(page, crmBoardPage, "Award", opportunity.company)
+    closed = moveNext(page, crmBoardPage, "Award", deal.company)
 
     assert closed.status == 200
     assert closed.json()["stageCode"] == "CLOSED"
     assert closed.json()["probability"] == 100
-    crmBoardPage.expectOpportunityInStage("Closed", opportunity.company)
+    crmBoardPage.expectDealInStage("Closed", deal.company)

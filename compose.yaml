@@ -24,7 +24,6 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-crm_demo}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-crm_demo_password}
       SERVER_PORT: 8081
-      LOCAL_PORT_CLEANER_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy

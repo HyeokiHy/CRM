@@ -12,20 +12,20 @@ playwright/tests/
 │   └── test_deals_api.py
 ├── conftest.py
 ├── data/
-│   └── opportunity_data.py
+│   └── deal_test_data.py
 ├── pages/
 │   ├── crm_board_page.py
-│   └── opportunity_dialog.py
+│   └── deal_dialog.py
 ├── test_smoke.py
 ├── test_registration_validation.py
-└── test_opportunity_stage_transition.py
+└── test_deal_stage_transition.py
 ```
 
 `pages/`는 반복되는 UI 상호작용과 locator를 관리합니다. `data/`는 재사용할 테스트 payload를 관리합니다. 각 테스트 파일은 business behavior와 assertion을 담당합니다.
 
 ## 테스트 시나리오
 
-- **Smoke**: 5개 pipeline column이 렌더링되는지 확인하고, seed된 Registration Opportunity를 열어 dialog의 데이터가 채워지는지 확인합니다.
+- **Smoke**: 5개 pipeline column이 렌더링되는지 확인하고, seed된 Registration Deal을 열어 dialog의 데이터가 채워지는지 확인합니다.
 - **Registration validation**: Company, Contact, Owner, Next action 중 하나가 비어 있으면 제출을 차단하는지, 정상 Registration이 생성되어 보드에 표시되는지 검증합니다.
 - **Registration → Access**: budget이 0인 경우 이동을 거부하고 Registration에 남기는지 검증합니다.
 - **Access → Go - No Go**: Opportunity location과 Items or materials가 모두 필요한지 검증합니다.
@@ -49,7 +49,7 @@ playwright/tests/
 
 ## 테스트 데이터
 
-`newOpportunity()`는 UUID suffix가 포함된 company name을 생성합니다. 테스트가 서로의 카드를 선택하거나 동일 resource를 덮어쓰는 일을 방지합니다.
+`newDeal()`은 UUID suffix가 포함된 company name을 생성합니다. 테스트가 서로의 카드를 선택하거나 동일 resource를 덮어쓰는 일을 방지합니다.
 
 현재 UI E2E 테스트는 생성한 Deal을 실행 중인 H2 instance에 남깁니다. 기본 H2 database는 애플리케이션이 종료되면 다시 생성됩니다. API 테스트는 `finally`에서 생성한 resource를 삭제합니다. persistent database 또는 병렬 CI를 도입할 때는 database reset 전략 또는 범위가 제한된 cleanup fixture를 추가해야 합니다. 이 작업에서는 그 구조를 의도적으로 추가하지 않았습니다.
 

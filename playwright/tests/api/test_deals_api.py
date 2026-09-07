@@ -1,28 +1,28 @@
 from playwright.sync_api import APIRequestContext
 
-from data.opportunity_data import newOpportunity
+from data.deal_test_data import newDeal
 
 
 def test_deals_api_supports_create_read_update_and_delete(
     apiRequestContext: APIRequestContext,
 ) -> None:
-    opportunity = newOpportunity()
+    deal = newDeal()
     dealId = None
     try:
-        created = apiRequestContext.post("/api/deals", data=opportunity.apiPayload())
+        created = apiRequestContext.post("/api/deals", data=deal.apiPayload())
         assert created.status == 201
         createdBody = created.json()
         dealId = createdBody["id"]
-        assert createdBody["company"] == opportunity.company
+        assert createdBody["company"] == deal.company
         assert createdBody["stageCode"] == "REGISTRATION"
 
         retrieved = apiRequestContext.get(f"/api/deals/{dealId}")
         assert retrieved.status == 200
         assert retrieved.json()["id"] == dealId
-        assert retrieved.json()["company"] == opportunity.company
+        assert retrieved.json()["company"] == deal.company
 
-        updatePayload = opportunity.apiPayload() | {
-            "company": f"{opportunity.company} Updated",
+        updatePayload = deal.apiPayload() | {
+            "company": f"{deal.company} Updated",
             "value": 125_000,
             "probability": 20,
         }
@@ -46,8 +46,8 @@ def test_deals_api_supports_create_read_update_and_delete(
 def test_move_api_rejects_registration_without_positive_budget(
     apiRequestContext: APIRequestContext,
 ) -> None:
-    opportunity = newOpportunity(value=0)
-    created = apiRequestContext.post("/api/deals", data=opportunity.apiPayload())
+    deal = newDeal(value=0)
+    created = apiRequestContext.post("/api/deals", data=deal.apiPayload())
     assert created.status == 201
     dealId = created.json()["id"]
 
