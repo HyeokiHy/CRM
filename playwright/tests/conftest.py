@@ -4,7 +4,7 @@ import pytest
 from playwright.sync_api import APIRequestContext, Page, Playwright
 
 from pages.crm_board_page import CrmBoardPage
-from pages.opportunity_dialog import OpportunityDialog
+from pages.deal_dialog import DealDialog
 
 
 @pytest.fixture
@@ -30,5 +30,5 @@ def crmBoardPage(page: Page, baseUrl: str) -> CrmBoardPage:
 
 
 @pytest.fixture
-def opportunityDialog(page: Page) -> OpportunityDialog:
-    return OpportunityDialog(page)
+def dealDialog(page: Page) -> DealDialog:
+    return DealDialog(page)

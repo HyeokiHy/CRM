@@ -1,1 +1,1 @@
-"""Small page objects shared by opportunity E2E tests."""
+"""Small page objects shared by Deal E2E tests."""

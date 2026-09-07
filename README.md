@@ -29,7 +29,7 @@ Spring Boot 기반 B2B CRM을 직접 구현하고, 단계 전환에 얽힌 Valid
 
 UI E2E는 실제 브라우저 입력, dialog, card 이동처럼 사용자에게 보이는 동작을 담당합니다. API test는 UI 흐름을 반복하기보다 status code, response body, CRUD lifecycle, service validation을 REST 경계에서 빠르게 확인합니다. Negative scenario에서는 오류 메시지만 보지 않고 기존 Stage가 유지되는지도 확인하며, 권한 시나리오는 거부와 허용 경로를 한 흐름에서 검증합니다.
 
-테스트 데이터는 `newOpportunity()`가 UUID suffix를 붙여 생성하므로 다른 테스트의 card를 잘못 선택할 가능성을 줄입니다. API test는 생성한 데이터를 정리하지만 UI E2E 데이터는 실행 중인 DB에 남습니다. 기본 H2는 애플리케이션 종료 시 초기화되며, persistent DB의 병렬 실행을 위한 별도 reset 전략은 아직 없습니다.
+테스트 데이터는 `newDeal()`이 UUID suffix를 붙여 생성하므로 다른 테스트의 card를 잘못 선택할 가능성을 줄입니다. API test는 생성한 데이터를 정리하지만 UI E2E 데이터는 실행 중인 DB에 남습니다. 기본 H2는 애플리케이션 종료 시 초기화되며, persistent DB의 병렬 실행을 위한 별도 reset 전략은 아직 없습니다.
 
 ## Automated Test Coverage
 
@@ -51,14 +51,14 @@ UI E2E는 실제 브라우저 입력, dialog, card 이동처럼 사용자에게 
 ```text
 playwright/tests/
 ├── api/test_deals_api.py          # REST contract와 resource state assertion
-├── data/opportunity_data.py       # UUID 기반 test data와 UI/API payload
+├── data/deal_test_data.py         # UUID 기반 test data와 UI/API payload
 ├── pages/
 │   ├── crm_board_page.py          # 보드 locator와 card/user interaction
-│   └── opportunity_dialog.py      # dialog locator, 입력, 제출 동작
+│   └── deal_dialog.py             # dialog locator, 입력, 제출 동작
 ├── conftest.py                    # base URL, browser page, API request context fixture
 ├── test_smoke.py
 ├── test_registration_validation.py
-└── test_opportunity_stage_transition.py
+└── test_deal_stage_transition.py
 ```
 
 Page Object는 반복되는 locator와 UI interaction을 캡슐화하고, 각 test는 Business Behavior와 assertion을 소유합니다. API는 별도 client wrapper를 만들지 않고 Playwright의 `APIRequestContext` fixture를 직접 사용합니다. 대상 URL은 `CRM_BASE_URL`로 바꿀 수 있고 기본값은 `http://localhost:8081`입니다.
@@ -154,7 +154,9 @@ $env:DB_PASSWORD="<local-password>"
 mvn spring-boot:run -Dspring-boot.run.profiles=postgres
 ```
 
-Windows의 개발 편의를 위한 port cleaner는 유지됩니다. 필요하면 `-Dlocal.port.cleaner.enabled=false`로 끌 수 있습니다.
+### 로컬 실행 Troubleshooting
+
+포트가 이미 사용 중이면 해당 프로세스를 확인해 종료하거나 `--server.port=<다른 포트>`로 애플리케이션을 실행합니다.
 
 ## Limitations
 

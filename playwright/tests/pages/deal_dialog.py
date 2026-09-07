@@ -1,7 +1,7 @@
 from playwright.sync_api import Locator, Page, expect
 
 
-class OpportunityDialog:
+class DealDialog:
     def __init__(self, page: Page) -> None:
         self.dialog = page.get_by_role("dialog")
 
@@ -14,7 +14,7 @@ class OpportunityDialog:
     def field(self, label: str) -> Locator:
         return self.dialog.get_by_label(label, exact=True)
 
-    def fillOpportunity(self, values: dict[str, str]) -> None:
+    def fillDeal(self, values: dict[str, str]) -> None:
         fieldLabels = {
             "company": "Company", "contact": "Contact", "owner": "Owner",
             "value": "Value", "probability": "Probability",

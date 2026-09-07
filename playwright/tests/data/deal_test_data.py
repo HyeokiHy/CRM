@@ -3,7 +3,7 @@ from uuid import uuid4
 
 
 @dataclass(frozen=True)
-class OpportunityData:
+class DealTestData:
     company: str
     contact: str = "QA Contact"
     owner: str = "J. Kim"
@@ -23,5 +23,5 @@ class OpportunityData:
         return asdict(self)
 
 
-def newOpportunity(**overrides: object) -> OpportunityData:
-    return OpportunityData(company=f"QA E2E {uuid4().hex[:8]}", **overrides)
+def newDeal(**overrides: object) -> DealTestData:
+    return DealTestData(company=f"QA E2E {uuid4().hex[:8]}", **overrides)
